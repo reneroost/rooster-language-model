@@ -1,4 +1,4 @@
-package org.example
+package ee.reneroost
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
