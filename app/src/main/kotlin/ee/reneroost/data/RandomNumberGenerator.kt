@@ -1,20 +1,9 @@
 package ee.reneroost.data
 
-import kotlin.math.ln
-import kotlin.math.sqrt
-import kotlin.math.cos
-import kotlin.math.PI
-
+// uses Xorshift128+ method
 class RandomNumberGenerator(seed: Long) {
     private var s0: Long = seed
-    private var s1: Long = seed xor 0x9E3779B97F4A7C15UL.toLong()
-
-    private var nextGaussianSample: Float? = null
-
-    init {
-        if (s0 == 0L && s1 == 0L) s1 = 1L
-        repeat(10) { nextLong() }
-    }
+    private var s1: Long = seed xor 0x6A09E667F3BCC908L
 
     fun nextLong(): Long {
         var x = s0
@@ -25,31 +14,10 @@ class RandomNumberGenerator(seed: Long) {
         return s1 + y
     }
 
-    fun nextFloat(): Float {
-        val bits = (nextLong() ushr 11)
-        return (bits.toDouble() / (1L shl 53).toDouble()).toFloat()
-    }
+    fun nextFloat(): Float = (nextLong() ushr 40).toFloat() / (1 shl 24).toFloat()
 
     fun nextInt(bound: Int): Int {
-        require(bound > 0) { "Bound must be positive" }
-        val r = (nextFloat() * bound).toInt()
-        return if (r >= bound) bound - 1 else r
-    }
-
-    fun nextGaussian(): Float {
-        nextGaussianSample?.let {
-            nextGaussianSample = null
-            return it
-        }
-
-        var u1 = nextFloat()
-        while (u1 <= 1e-7f) { u1 = nextFloat() }
-        val u2 = nextFloat()
-
-        val radius = sqrt(-2.0f * ln(u1))
-        val theta = 2.0f * PI.toFloat() * u2
-
-        nextGaussianSample = radius * cos(theta)
-        return radius * kotlin.math.sin(theta)
+        require(bound > 0) { "bound must be positive" }
+        return (nextFloat() * bound).toInt().coerceIn(0, bound - 1)
     }
 }
